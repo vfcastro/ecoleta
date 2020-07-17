@@ -34,7 +34,14 @@ const CreatePoint = () => {
   
   const [selectedUf, setSelectedUf] = useState<string>('0');
   const [selectedCity, setSelectedCity] = useState<string>('0');
+  const [selectedItems, setSelectedItems] = useState<number[]>([]);
   const [selectedPosition, setSelectedPosition] = useState<[number, number]>([0,0]);
+
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    whatsapp: ''
+  });
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(position => {
@@ -90,6 +97,23 @@ const CreatePoint = () => {
     ]);
   }
 
+  function handleInputChange(event: ChangeEvent<HTMLInputElement>) {
+    const { name, value } = event.target;
+    setFormData({ ...formData, [name]: value});
+  }
+
+  function handleSelectedItem(id: number) {
+    const alreadySelected = selectedItems.includes(id);
+    
+    if(alreadySelected) {
+      const filteredItems = selectedItems.filter(item => item !== id);
+      setSelectedItems(filteredItems);
+    }
+    else {
+      setSelectedItems( [...selectedItems, id ]);
+    }
+  }
+
   return (
     <div id="page-create-point">
       <header>
@@ -115,6 +139,7 @@ const CreatePoint = () => {
               type="text" 
               name="name"
               id="name"
+              onChange={handleInputChange}
              />
           </div>
 
@@ -125,6 +150,7 @@ const CreatePoint = () => {
                 type="email" 
                 name="email"
                 id="email"
+                onChange={handleInputChange}
               />
             </div>
             <div className="field">
@@ -133,6 +159,7 @@ const CreatePoint = () => {
                 type="text" 
                 name="whatsapp"
                 id="whatsapp"
+                onChange={handleInputChange}
               />
             </div>
           </div>
@@ -155,7 +182,7 @@ const CreatePoint = () => {
           <div className="field-group">
             <div className="field">
               <label htmlFor="uf">Estado (UF)</label>
-              <select name="uf" id="uf" onChange={handleSelectUf}>
+              <select name="uf" id="uf" value={selectedUf} onChange={handleSelectUf}>
                 <option value="0">Selecione uma UF</option>
                 {ufs.map(uf => (
                   <option id={uf} value={uf}>{uf}</option>
@@ -164,7 +191,7 @@ const CreatePoint = () => {
             </div>
             <div className="field">
               <label htmlFor="city">Cidade</label>
-              <select name="city" id="city" onChange={handleSelectCity}>
+              <select name="city" id="city" value={selectedCity} onChange={handleSelectCity}>
                 <option value="0">Selecione uma cidade</option>
                 {cities.map(city => (
                   <option id={city} value={city}>{city}</option>
@@ -182,8 +209,10 @@ const CreatePoint = () => {
 
           <ul className="items-grid">
             {items.map(item => (            
-              <li key={item.id}>
-                <img src={item.image_url} alt={item.title}/>
+              <li key={item.id}
+                  onClick={() => handleSelectedItem(item.id)}
+                  className={selectedItems.includes(item.id) ? 'selected' : '' } >
+                <img src={item.image_url} alt={item.title} />
                 <span>{item.title}</span>
               </li>
             ))}
