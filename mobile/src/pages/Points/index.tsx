@@ -4,7 +4,7 @@ import { Feather as Icon } from '@expo/vector-icons';
 import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import MapView, { Marker } from 'react-native-maps';
-import { SvgUri } from 'react-native-svg'
+import { SvgUri } from 'react-native-svg';
 
 const Points: React.FC = () => {
   const navigation = useNavigation();
