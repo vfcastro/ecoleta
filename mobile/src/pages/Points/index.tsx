@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import Constants from 'expo-constants';
 import { Feather as Icon } from '@expo/vector-icons';
-import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import MapView, { Marker } from 'react-native-maps';
 import { SvgUri } from 'react-native-svg';
 import api from '../../services/api';
+import * as Location from 'expo-location';
 
 interface Item {
   id: number;
@@ -18,17 +19,30 @@ const Points: React.FC = () => {
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
 
   const navigation = useNavigation();
-  const initialPosition = { 
-    latitude: -30.0277,
-    longitude: -51.2287,
-    latitudeDelta: 0.005,
-    longitudeDelta: 0.005, 
-  }
+  const [userLocation, setUserLocation] = useState({ latitude: -30.0277, longitude: -51.2287 });
 
   useEffect(() => {
     api.get('items').then(response => {
       setItems(response.data);
     });
+  }, []);
+
+  useEffect(() => {
+    async function loadPosition() {
+      const { status } = await Location.requestPermissionsAsync();
+
+      if (status !== Location.PermissionStatus.GRANTED ) {
+        Alert.alert('Ooooops...','Precisamos da sua permissão para acessar a localização!');
+        return;
+      }
+
+      const location = await Location.getCurrentPositionAsync();
+      const { latitude, longitude } = location.coords;
+
+      setUserLocation({ latitude, longitude });
+    }
+
+    loadPosition();
   }, []);
 
   function handleNavigationBack() {
@@ -64,12 +78,16 @@ const Points: React.FC = () => {
         <View style={styles.mapContainer}>
           <MapView
             style={styles.map}
-            initialRegion={initialPosition}
+            region={{
+              ...userLocation,
+              latitudeDelta: 0.005,
+              longitudeDelta: 0.005
+            }}
           >
             <Marker 
               style={styles.mapMarker}
               onPress={handleNavigationToDetail} 
-              coordinate={initialPosition}>
+              coordinate={userLocation}>
 
               <View style={styles.mapMarkerContainer}>
                 <Image 
@@ -98,7 +116,7 @@ const Points: React.FC = () => {
               ]}
               onPress={() => handleSelectedItem(item.id)}
               activeOpacity={0.6}
-              
+
             >
               <SvgUri height={42} width={42} uri={item.image_url} />
               <Text style={styles.itemTitle}>{item.title}</Text>
